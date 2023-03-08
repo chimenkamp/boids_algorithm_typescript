@@ -30,10 +30,16 @@ export class Boid extends Phaser.GameObjects.Sprite {
   }
 
   public move() {
+
+    const nearestBoids: Boid[] = this.boids.filter(
+      (other: Boid) => { return Phaser.Math.Distance.Between(this.x, this.y, other.x, other.y) < this.perceptionRadius }
+    )
+
     // Apply boids rules to steer boid's movement
-    const alignment = this.align();
-    const cohesion = this.cohere();
-    const separation = this.separate();
+    const alignment = this.align(nearestBoids);
+    const cohesion = this.cohere(nearestBoids);
+    const separation = this.separate(nearestBoids);
+
     this.acceleration.add(alignment);
     this.acceleration.add(cohesion);
     this.acceleration.add(separation);
@@ -51,7 +57,7 @@ export class Boid extends Phaser.GameObjects.Sprite {
     ) + Math.PI;
 
     // Apply velocity to position and reset acceleration
-    this.x += this.velocity.x / this.scene.game.loop.actualFps; // assuming 60 FPS
+    this.x += this.velocity.x / this.scene.game.loop.actualFps;
     this.y += this.velocity.y / this.scene.game.loop.actualFps;
     this.acceleration.setTo(0, 0);
 
@@ -63,11 +69,11 @@ export class Boid extends Phaser.GameObjects.Sprite {
     }
   }
 
-  private align() {
+  private align(nearestBoids: Boid[]) {
     const steering = new Phaser.Math.Vector2(0, 0);
     let total = 0;
-    for (const other of this.boids) {
-      if (other !== this && Phaser.Math.Distance.Between(this.x, this.y, other.x, other.y) < this.perceptionRadius) {
+    for (const other of nearestBoids) {
+      if (other !== this) {
         steering.add(other.velocity);
         total++;
       }
@@ -84,11 +90,11 @@ export class Boid extends Phaser.GameObjects.Sprite {
     return steering;
   }
 
-  private cohere() {
+  private cohere(nearestBoids: Boid[]) {
     const steering = new Phaser.Math.Vector2(0, 0);
     let total = 0;
-    for (const other of this.boids) {
-      if (other !== this && Phaser.Math.Distance.Between(this.x, this.y, other.x, other.y) < this.perceptionRadius) {
+    for (const other of nearestBoids) {
+      if (other !== this) {
         steering.add(new Phaser.Math.Vector2(other.x, other.y));
         total++;
       }
@@ -106,11 +112,11 @@ export class Boid extends Phaser.GameObjects.Sprite {
     return steering;
   }
 
-  private separate() {
+  private separate(nearestBoids: Boid[]) {
     const steering = new Phaser.Math.Vector2(0, 0);
     let total = 0;
-    for (const other of this.boids) {
-      if (other !== this && Phaser.Math.Distance.Between(this.x, this.y, other.x, other.y) < this.perceptionRadius) {
+    for (const other of nearestBoids) {
+      if (other !== this) {
         const difference = (new Phaser.Math.Vector2(this.x, this.y)).clone().subtract(new Phaser.Math.Vector2(other.x, other.y));
         difference.normalize();
         const distanceTo: number = Phaser.Math.Distance.Between(this.x, this.y, other.x, other.y)

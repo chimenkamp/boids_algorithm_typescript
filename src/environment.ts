@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 import { isPointInCircle } from './utils'
 import { Boid } from './boids'
 
-const SCREEP_AMOUNT = 200
+const SCREEP_AMOUNT = 500
 
 export default class EnvironmentScene extends Phaser.Scene {
 
